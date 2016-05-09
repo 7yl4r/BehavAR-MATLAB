@@ -19,7 +19,7 @@ plotTrainTest( data_series1, train, trainY, test, testY );
 
 plotRegressorSlopes(train, trainY, trainVals, data_series1);
 
-plotRegressorPointConnect(train, trainY, data_series1);
+plotRegressorPointConnect(train, trainY, data_series1, lags);
 
 % use train regressors to do autoregression
 sums = zeros(1, length(lags));  % sum of train regressors
