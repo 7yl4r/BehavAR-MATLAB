@@ -17,7 +17,7 @@ for t = 1:length(data)
                 (data(t) - data(t-tao))/tao;
                 %(data_series1(t) - b) / data_series1(t-tao);
         else
-            regressors(tao, t) = 0;
+            regressors(tao, t) = 0;  % TODO: could estimate initial values
         end  % else t-tao is out-of-bounds
     end
 end

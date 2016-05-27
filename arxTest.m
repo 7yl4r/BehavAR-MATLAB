@@ -1,21 +1,7 @@
-%load iddata3 z3 % estimation data
-len = 5;
-u1 = exp(randn(1, len))';
-u2 = exp(randn(1, len))';
-y = zeros(size(u1));
+% fake data
+len = 20;
 tao = 1;
-for t = 1:length(u1)  % fake data with strong autocorrelation
-    if t-tao > 0;
-        y(t) = u1(t-tao)*10 + rand;
-    end
-end
-
-%y = [1 2 3 5 10 20].';
-%u1 = [0 1 2 4 9 15].';
-%u2 = [1 2 3 4 5 6].';
-
-u = [u1, u2];  % is u time or input signal?
-u = u1;
+[y, u] = getFakeData(len, tao);  % min len is 4 + tao
 
 ny = size(y, 2);  % # of inputs
 nu = size(u, 2);  % # of outputs
@@ -28,9 +14,9 @@ z3 = iddata(y, u, 1);
 disp(z3)
 figure;
 plot(z3)
-na = 1;
-nb = 1;
-nk = 1;
+na = 1;  % Order of the polynomial A(q)
+nb = 1;  % Order of the polynomial A(q)
+nk = tao;  % Input-output delay expressed as fixed leading zeros of B 
 
 % # rows of na, nb, nk == # outputs rows of u (ny) 
 % na is square (ny by ny)
