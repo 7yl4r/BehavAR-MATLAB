@@ -1,13 +1,17 @@
 % fake data:
-[outputData_Y, exogeneous_U] = getFakeData(100, 1);
+exogeneous_U = mockInputData(1000, 'random');  
+mockSys = idpoly([1, .5, -.5], [0, .1, 1]);  % mock arx model
+outputData_Y = sim(mockSys, exogeneous_U);
 
+% split the data
 [trainData, testData] = randomSelectionSplit(outputData_Y, exogeneous_U);
-
-[ sys, Y, X ] = behavARX( trainData, 2 );
 
 plot(trainData);
 figure;
 plot(testData);
+
+% train the arx model
+[ sys, Y, X ] = behavARX( trainData, 2 );
 
 figure;
 compare(iddata(outputData_Y, exogeneous_U), sys);
