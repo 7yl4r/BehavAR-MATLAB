@@ -1,5 +1,4 @@
 function [ sys, Y, X ] = behavARX( data,nb )
-
 % This function estimates the model
 % y(t) = b_0*u(t) + b_1*u(t-1) ... + b_nb*u(t-nb) +
 %      - a_0*y(t) - a_1*y(t-1) ... - a_na*y(t-na)
@@ -40,7 +39,7 @@ function [ sys, Y, X ] = behavARX( data,nb )
 % In your problem you will use an output vector and regressor matrix 
 % consisting on random permutations of rows of X and Y.
 
-%
+disp('behavARX');
 
 y=data.y; % extracts the output signal from the iddata object
 u=data.u; % extracts the input signal from the iddata object
@@ -62,22 +61,8 @@ end;
 % X(i,nb+1:2*nb+1) = y(nb+i:-1:i);  % self-correlation regressors
 % end of the construction of the regressor Matrix
 
-% interpolate for missing NaN values... (maybe problematic)
-for col=1:size(X,2)
-    X(:,col) = naninterp(X(:,col));
-end;
-X(isnan(X)) = 0;  % temp fix for nan vals on edges
-
-for col=1:size(X2,2)
-    X2(:,col) = naninterp(X2(:,col));
-end;
-X2(isnan(X2)) = 0;
-
-Y = naninterp(Y);
-Y(isnan(Y)) = 0;
-
-% disp(X)
-% disp(X2)
+%[X, X2, Y] = interpolate(X, X2, Y);
+[X, X2, Y] = dropNaNs(X, X2, Y);
 
 % The next command calculates the system parameters Theta=(X^T*X)^(-1)X^T*Y
 % Notice that (X^T*X)*{-1}*X^T is the pseudo inverse. The command pinv(X)
@@ -118,3 +103,39 @@ sys=idpoly(A',B');
 
 end
 
+function [X, X2, Y] = interpolate(x, x2, y)
+    % interpolate for missing NaN values... (maybe problematic)
+    for col=1:size(x,2)
+        X(:,col) = naninterp(x(:,col));
+    end;
+    X(isnan(X)) = 0;  % temp fix for nan vals on edges
+
+    for col=1:size(x2,2)
+        X2(:,col) = naninterp(x2(:,col));
+    end;
+    X2(isnan(X2)) = 0;
+
+    Y = naninterp(y);
+    Y(isnan(Y)) = 0;
+end
+
+function [xx, xx2, yy] = dropNaNs(x, x2, y)
+    % drops rows from the given matricies if nan is in any column
+    xx = [];
+    xx2= [];
+    yy = [];    
+    % TODO: there is probably a cleaner way to do this...
+    for row=1:size(x,1) 
+        if ~any(isnan(x(row,:)))
+            xx (length(xx )+1,:)= x (row,:);
+            xx2(length(xx2)+1,:)= x2(row,:);
+            yy (length(yy )+1,:)= y (row,:);
+            %disp('keep row ');
+        else
+            %disp('drop row ');
+        end
+            disp(x(row,:));
+    end
+    xx( ~any(xx,2), : ) = [];  % removed mysterious 0 rows
+    xx2(~any(xx2,2),: ) = [];
+end

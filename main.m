@@ -1,5 +1,5 @@
 % fake data:
-exogeneous_U = mockInputData(500, 'random');  
+exogeneous_U = mockInputData(20, 'random');  
 mockSys = idpoly([1, 0, 0], [.2, .5, .1]);  % mock arx model
 outputData_Y = sim(mockSys, exogeneous_U);
 
