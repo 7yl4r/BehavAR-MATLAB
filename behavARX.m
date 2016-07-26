@@ -64,6 +64,10 @@ end;
 %[X, X2, Y] = interpolate(X, X2, Y);
 [X, X2, Y] = dropNaNs(X, X2, Y);
 
+disp('condition numbers:');
+disp(cond(X));
+disp(cond(X2));
+
 % The next command calculates the system parameters Theta=(X^T*X)^(-1)X^T*Y
 % Notice that (X^T*X)*{-1}*X^T is the pseudo inverse. The command pinv(X)
 % calculates the pseudo inverse of X but in MATLAB the most robust way to
