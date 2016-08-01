@@ -1,4 +1,4 @@
-function [ sys, Y, X ] = behavARX( data,nb )
+function [ sys, Y, X, cond_A, cond_B ] = behavARX( data, nb, verbose)
 % This function estimates the model
 % y(t) = b_0*u(t) + b_1*u(t-1) ... + b_nb*u(t-nb) +
 %      - a_0*y(t) - a_1*y(t-1) ... - a_na*y(t-na)
@@ -39,8 +39,6 @@ function [ sys, Y, X ] = behavARX( data,nb )
 % In your problem you will use an output vector and regressor matrix 
 % consisting on random permutations of rows of X and Y.
 
-disp('behavARX');
-
 y=data.y; % extracts the output signal from the iddata object
 u=data.u; % extracts the input signal from the iddata object
 
@@ -64,9 +62,8 @@ end;
 %[X, X2, Y] = interpolate(X, X2, Y);
 [X, X2, Y] = dropNaNs(X, X2, Y);
 
-disp('condition numbers:');
-disp(cond(X));
-disp(cond(X2));
+cond_A = cond(X);
+cond_B = cond(X2);
 
 % The next command calculates the system parameters Theta=(X^T*X)^(-1)X^T*Y
 % Notice that (X^T*X)*{-1}*X^T is the pseudo inverse. The command pinv(X)
@@ -138,7 +135,7 @@ function [xx, xx2, yy] = dropNaNs(x, x2, y)
         else
             %disp('drop row ');
         end
-            disp(x(row,:));
+%             disp(x(row,:));
     end
     xx( ~any(xx,2), : ) = [];  % removed mysterious 0 rows
     xx2(~any(xx2,2),: ) = [];

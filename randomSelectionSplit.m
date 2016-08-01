@@ -1,4 +1,4 @@
-function [ trainData, testData ] = randomSelectionSplit( outputData_Y, exogeneous_U )
+function [ trainData, testData, ratio ] = randomSelectionSplit( outputData_Y, exogeneous_U )
 % given two data arrays, returns test and training set data objects.
 % points are randomly assigned to either test/training.
 
@@ -24,9 +24,10 @@ for t = 1:length(outputData_Y)
     end
 end
 
- fprintf('train:test = %d/%d (%d%% train)\n', ...
-     n_train, n_test, ... 
-     round(100*n_train/(n_train+n_test)));
+ratio = round(100*n_train/(n_train+n_test));
+
+%  fprintf('train:test = %d/%d (%d%% train)\n', ...
+%      n_train, n_test, ratio);
 
 trainData = iddata(trainY', trainU');
 testData  = iddata(testY',  testU' );
