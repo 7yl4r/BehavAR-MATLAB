@@ -99,10 +99,10 @@ B=X2\Y;
 % (1+a_1*q^-1+...+a_na*q^-na)*y(t)=(b_0+b_1*q^-1+...+b_nb*q^-nb)*u(t)
 %
 % you get the referred compact form .
-disp('A')
-disp(A)
-disp('B')
-disp(B)
+% disp('A')
+% disp(A)
+% disp('B')
+% disp(B)
 
 sys=idpoly(A',B',[],[],[]);
 

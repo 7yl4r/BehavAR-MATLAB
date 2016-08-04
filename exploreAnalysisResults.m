@@ -5,28 +5,86 @@ load('analysisData');
 % assumed data cols: trainTestRatio, randSeed, NRMSE, PID, cond_A, cond_B,
 % usedInputsColumnsBits
 n_cols = 6;
+trainTestLimits = [0 100];
+NRMSELimits = [-100 100];
+condLimits = [0 100];
+
+% threshold large neg %fit values
+% minVal = -100;
+% maxVal = 200;
+% index = 3;
+% analysisData( (analysisData(:,index) < minVal), index ) = minVal;
+% analysisData( (analysisData(:,index) > maxVal), index ) = maxVal;
+% 
+% index = 6;
+% minVal = -1;
+% maxVal = 150;
+% analysisData( (analysisData(:,fitInd) < minVal), fitInd ) = minVal;
+% analysisData( (analysisData(:,fitInd) > maxVal), fitInd ) = maxVal;
+
 
 
 % ### analysis across all data
 hist(analysisData(:,1));
+title('trainTest histogram');
+% xlim(trainTestLimits);
+% xlabel();
+% ylabel();
+
 figure;
 hist(analysisData(:,3));
-figure;
-hist(analysisData(:,5));
-figure;
-hist(analysisData(:,6));
+title('NRMSE histogram');
+xlim(NRMSELimits);
+% xlabel();
+% ylabel();
 
-% TODO: scatterplots on correlations
-% NRMSE vs train/test
+figure;
+nBins = 10;
+stepSize = (condLimits(2)-condLimits(1))/(nBins-1);
+centers = condLimits(1):stepSize:condLimits(2);
+Xcts = hist(analysisData(:,5), centers);
+[xb, yb] = stairs(centers,Xcts);
+area(xb, yb)
+title('cond_A histogram');
+xlim(condLimits);
+% xlabel();
+% ylabel();
+
+figure;
+nBins = 10;
+stepSize = (condLimits(2)-condLimits(1))/(nBins-1);
+centers = condLimits(1):stepSize:condLimits(2);
+Xcts = hist(analysisData(:,6), centers);
+[xb, yb] = stairs(centers,Xcts);
+area(xb, yb)
+title('cond_B histogram');
+ylim(condLimits);
+% xlabel();
+% ylabel();
+
 figure;
 scatter(analysisData(:,3), analysisData(:,1))
-% NRMSE vs cond_A
+% title();
+xlabel('NRMSE');
+xlim(NRMSELimits);
+ylabel('% train');
+% ylim(trainTestLimits);
+
 figure;
 scatter(analysisData(:,3), analysisData(:,5))
-% NRMSE vs cond_B
+% title();
+xlabel('NRMSE');
+xlim(NRMSELimits);
+ylabel('cond(A regressors) (auto-correlation vals)');
+ylim(condLimits);
+
 figure;
 scatter(analysisData(:,3), analysisData(:,6))
-
+% title();
+xlabel('NRMSE');
+xlim(NRMSELimits);
+ylabel('cond(B regressors) (in-out correlations)');
+ylim(condLimits);
 
 % ### segmented by participant
 % pids = unique(analysisData(:,4));
@@ -65,3 +123,21 @@ violin([...
     analysisData(analysisData(:,4) == 100255,target_col)...
     analysisData(analysisData(:,4) == 100263,target_col)...
     ]);
+% title();
+xlabel('participant');
+ylabel('NRMSE');
+ylim(NRMSELimits);
+
+% best of each participant
+pids = unique(analysisData(:,4));
+% run behavARX many times on each participant, record results
+best = zeros(length(pids), size(analysisData,2));
+for i=1:length(pids)
+    pid = pids(i);
+    p_data = analysisData(analysisData(:,4) == pid,:);
+    [val, ind ] = max(p_data(:,3));
+    best(i,:) = p_data(ind, :);
+end;
+printmat(best, 'Best Models', '100008 100057 100073 100115 100123 100149 100156 100164 100172 100180 100198 100206 100214 100222 100230 100248 100255 100263', 'trainTestRatio randSeed NRMSE PID cond_A cond_B');
+
+

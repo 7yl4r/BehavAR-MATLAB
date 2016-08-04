@@ -21,7 +21,7 @@ end
 [ sys, Y, X, cond_A, cond_B ] = behavARX( trainData, 7 );
 
 [~,NRMSE,~] = compare(iddata(outputData_Y, exogeneous_U), sys);
-disp(NRMSE);
+% disp(NRMSE);
 if showFigures == true
     figure;
     compare(iddata(outputData_Y, exogeneous_U), sys);
