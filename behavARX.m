@@ -41,6 +41,7 @@ function [ sys, Y, X, cond_A, cond_B ] = behavARX( data, nb, verbose)
 
 y=data.y; % extracts the output signal from the iddata object
 u=data.u; % extracts the input signal from the iddata object
+n_inputs = size(u,2);
 
 % disp(u)
 
@@ -54,18 +55,18 @@ X=zeros(length(Y),nb+1);
 for i=1:length(Y)
      X(i,:) = y(nb+i:-1:i);  % self-correlation regressors
 end;
-X2=zeros(length(Y),nb+1);
-for i=1:length(Y)
-    X2(i,:) = u(nb+i:-1:i)';  % input regressors
-end;
-% X(i,nb+1:2*nb+1) = y(nb+i:-1:i);  % self-correlation regressors
-% end of the construction of the regressor Matrix
+
+X2=zeros(size(u,1),nb+1);
+
+% save these vals for later...
+X_0 = X;
+X2_0 = X2;
+Y_0 = Y;
 
 %[X, X2, Y] = interpolate(X, X2, Y);
 [X, X2, Y] = dropNaNs(X, X2, Y);
 
 cond_A = cond(X);
-cond_B = cond(X2);
 
 % The next command calculates the system parameters Theta=(X^T*X)^(-1)X^T*Y
 % Notice that (X^T*X)*{-1}*X^T is the pseudo inverse. The command pinv(X)
@@ -75,7 +76,45 @@ A=X\Y;
 % leading coeff must be exactly 1 (set here removes floating point errors
 A(1) = 1;  
 
-B=X2\Y;
+% now the same thing but with u->y regressors
+
+% disp(Y);
+
+% disp(size(u))
+B = cell(n_inputs, 1);
+for input_i=1:n_inputs
+    X = X_0;  % reset these vars...
+    X2 = X2_0;
+    Y = Y_0;
+    for i=1:length(Y)
+        X2(i,:) = u(nb+i:-1:i, input_i)';  % input regressors
+    end;
+    % X(i,nb+1:2*nb+1) = y(nb+i:-1:i);  % self-correlation regressors
+    % end of the construction of the regressor Matrix
+    
+    disp(size(X2))
+    disp(size(Y))
+
+    %[X, X2, Y] = interpolate(X, X2, Y);
+    [X, X2, Y] = dropNaNs(X, X2, Y);  % TODO: is it bad to do this again?
+%     disp(X);
+%     disp(X2);
+%     disp(Y);
+    
+    disp(size(X2))
+    disp(size(Y))
+    
+    cond_B = cond(X2);  % TODO: how to get cond of 3d matrix?
+
+%     disp(X2)
+    
+    B_row=X2\Y;
+    B{input_i, 1} = B_row';
+    
+%     disp(B)
+end;
+
+
 
 % The next command builds an idpoly model A(q^-1)y(t)=B(q^-1)u(t) with
 % A(q^-1)=1 and the coefficients of B(q^-1) in theta. The q^-1 is the delay
@@ -104,7 +143,7 @@ disp(A)
 disp('B')
 disp(B)
 
-sys=idpoly(A',B',[],[],[]);
+sys=idpoly(A',B,[],[],[]);
 
 end
 
@@ -141,6 +180,6 @@ function [xx, xx2, yy] = dropNaNs(x, x2, y)
         end
 %             disp(x(row,:));
     end
-    xx( ~any(xx,2), : ) = [];  % removed mysterious 0 rows
-    xx2(~any(xx2,2),: ) = [];
+    xx( ~any(xx, 2), : ) = [];  % removed mysterious 0 rows
+    xx2(~any(xx2,2), : ) = [];
 end
