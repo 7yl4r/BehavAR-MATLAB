@@ -104,7 +104,7 @@ B=X2\Y;
 % disp('B')
 % disp(B)
 
-sys=idpoly(A',B',[],[],[]);
+sys=idpoly(A',B');
 
 end
 

@@ -10,17 +10,17 @@ NRMSELimits = [-100 100];
 condLimits = [0 100];
 
 % threshold large neg %fit values
-% minVal = -100;
-% maxVal = 200;
-% index = 3;
-% analysisData( (analysisData(:,index) < minVal), index ) = minVal;
-% analysisData( (analysisData(:,index) > maxVal), index ) = maxVal;
-% 
-% index = 6;
-% minVal = -1;
-% maxVal = 150;
-% analysisData( (analysisData(:,fitInd) < minVal), fitInd ) = minVal;
-% analysisData( (analysisData(:,fitInd) > maxVal), fitInd ) = maxVal;
+index = 3;
+analysisData( (analysisData(:,index) < NRMSELimits(1)), index ) = NRMSELimits(1);
+analysisData( (analysisData(:,index) > NRMSELimits(2)), index ) = NRMSELimits(2);
+
+index = 5;
+analysisData( (analysisData(:,index) < condLimits(1)), index ) = condLimits(1);
+analysisData( (analysisData(:,index) > condLimits(2)), index ) = condLimits(2);
+
+index = 6;
+analysisData( (analysisData(:,index) < condLimits(1)), index ) = condLimits(1);
+analysisData( (analysisData(:,index) > condLimits(2)), index ) = condLimits(2);
 
 
 
