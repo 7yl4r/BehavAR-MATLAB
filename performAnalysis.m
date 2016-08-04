@@ -3,35 +3,27 @@
 % mockSys = idpoly([1, 0, 0], [.2, .5, .1]);  % mock arx model
 % outputData_Y = sim(mockSys, exogeneous_U);
 
-% real data
-load data_p_263
-PID = 263;
-exogeneous_U = cell2mat(data_p_263(:,4)); % step goal
-outputData_Y = cell2mat(data_p_263(:,6)); % actual steps
-% TODO: multiple inputs (U) 
-
-if exist('analysisData', 'file') == 1
-    analysisData = load('analysisData');
+% pick up where we left off (if partial analysis exists)
+if exist('analysisData.mat', 'file') == 2
+    load('analysisData');
+    %randSeed = analysisData(end,2);  % use last seed
+    randSeed = max(analysisData(:,2)); % use max seed (better than last)
+    fprintf('Resuming analysis @ seed value %d\n', randSeed);
 else 
+    fprintf('No data file found; starting new analysis\n');
     analysisData = [];
+    randSeed = 1;
 end
 
-randSeed = 101;
+% load real data
+load 'data/linearInterp_v7.0.mat';
 
-% run behavARX many times, record results
-for i=1:500
-    fprintf('%d|',i);
-     rng(randSeed);
-
-    [ trainTestRatio, NRMSE, cond_A, cond_B ]...
-        = AnalyzeData(exogeneous_U, outputData_Y, false);
-
-    row = [ trainTestRatio, randSeed, NRMSE, PID, cond_A, cond_B ];
-    
-    analysisData = [analysisData; row];
-    save('analysisData', 'analysisData');
-    
-    randSeed = randSeed + 1;
+pids = unique(data(:,1));
+% run behavARX many times on each participant, record results
+for i=1:length(pids)
+    fprintf('=== p#%d ===\n',pids(i));
+    analysisData = AnalyzeParticipant(pids(i), data, analysisData, 1, randSeed);
 end;
+fprintf('\n');
 
 

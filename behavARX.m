@@ -42,6 +42,8 @@ function [ sys, Y, X, cond_A, cond_B ] = behavARX( data, nb, verbose)
 y=data.y; % extracts the output signal from the iddata object
 u=data.u; % extracts the input signal from the iddata object
 
+% disp(u)
+
 N=length(y); % Calculates the number input-output data pairs.
 
 Y=y(nb+1:N); % Builds the output vector of the least squares estimator
@@ -97,10 +99,12 @@ B=X2\Y;
 % (1+a_1*q^-1+...+a_na*q^-na)*y(t)=(b_0+b_1*q^-1+...+b_nb*q^-nb)*u(t)
 %
 % you get the referred compact form .
-% disp(A)
-% disp(B)
+disp('A')
+disp(A)
+disp('B')
+disp(B)
 
-sys=idpoly(A',B');
+sys=idpoly(A',B',[],[],[]);
 
 end
 
