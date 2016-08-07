@@ -3,9 +3,15 @@ function [ sys, Y, X, cond_A, cond_B ] = behavARX( data, nb, verbose)
 % y(t) = b_0*u(t) + b_1*u(t-1) ... + b_nb*u(t-nb) +
 %      - a_0*y(t) - a_1*y(t-1) ... - a_na*y(t-na)
 %
+% Y = BU - AY ?
+%
 % given y(1),...,y(N),u(1),....,u(N) and using the least squares estimator
 %
-%  theta=(X^T*X)^(-1)*X^TY
+%  theta=(X^T*X)^(-1)*X^TY  % this is normal equation
+%
+% TODO: check condition of X^T*X
+%   if ill-conditioned, you get errors 10^k digits lost
+%   if singular, non-invertable.
 %
 % where 
 %   theta=[b_0 ... b_nb]^T

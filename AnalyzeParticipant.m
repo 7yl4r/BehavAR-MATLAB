@@ -67,11 +67,11 @@ for i=1:N
     row = [ trainTestRatio, randSeed, NRMSE, PID, cond_A, cond_B ];
     
     analysisData = [analysisData; row];
-    save('analysisData', 'analysisData');
     
     randSeed = randSeed + 1;
 end;
 fprintf('\n');
 
+save('analysisData', 'analysisData');
 end
 
