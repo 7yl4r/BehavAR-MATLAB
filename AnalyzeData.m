@@ -1,4 +1,4 @@
-function [ trainTestRatio, NRMSE, cond_A, cond_B ] = ...
+function [ trainTestRatio, NRMSE, conditionNum ] = ...
     AnalyzeData( outputData_Y, exogeneous_U, percentTrain, modelOrder, showFigures)
 %AnalyzeData returns analysis results on given Y & U data
 %   ...
@@ -18,7 +18,7 @@ if showFigures == true
 end
     
 % train the arx model
-[ sys, Y, X, cond_A, cond_B ] = behavARX( trainData, modelOrder );
+[ sys, Y, X, conditionNum ] = behavARX( trainData, modelOrder );
 
 [~,NRMSE,~] = compare(iddata(outputData_Y, exogeneous_U), sys);
 % disp(NRMSE);
