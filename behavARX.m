@@ -53,35 +53,47 @@ n_inputs = size(u,2)+1;  % +1 b/c autocorrelation
 timeSpan = length(y)-nb;  % starting Y with y(nb+1), so nb+1 through len(y)
 N=timeSpan*(n_inputs); % one set of outputs for each input
 
-fprintf('y(%dx1), nb=%d, # regressors per input=%d\n',length(y), nb, timeSpan);
+% fprintf('y(%dx1), nb=%d, # regressors per input=%d, # inputs=%d\n',length(y), nb, timeSpan, n_inputs);
 % Builds the output vector Y the least squares estimator
-Y=zeros(N,1); 
-for inpNum = 1:n_inputs
-    % Y = y(nb+1:length(y));
-    Y((inpNum-1)*timeSpan+1 : inpNum*timeSpan) = y(nb+1:length(y));
-end
+Y = y(nb+1:length(y));
 
 % Build input matrix U for least squares estimator
-X=zeros(N,n_inputs);
-% first the autocorrelation
+% X=zeros((nb+1)*n_inputs, timeSpan);
+X=[];
 for i=1:timeSpan
-    %  U(i,:) = y(nb+i:-1:i);  % NOTE: now only using 1 delay, not
-    %  range from t-1 : t-nb (like this old code snippet did)
-    X(i) = y(i);  % no nb b/c Y is shifted so i here is already nb lagged
+    %  X(i,:) = y(nb+i:-1:i);
+%     disp(size( X(1:nb,i) ));
+%     disp(size( y(i:nb+i) ));
+    % first the autocorrelation
+    X(1:nb,i) = y(i:nb+i-1);  % no nb b/c Y is shifted so i here is already nb lagged
+    
+    % next the input-output correlation
+    for inpNum = 1:size(u,2)
+        lag0_i = nb*inpNum+1;
+        lagf_i= nb*(inpNum+1);
+        X(lag0_i:lagf_i, i) = u(i:nb+i-1,inpNum);
+    end
+
 end
 % next the input-output correlation
-for inpNum = 1:size(u,2)
-    %  X2(i,:) = u(nb+i:-1:i)';  % NOTE: notes above apply here too
-    for i = 1:timeSpan
-        X_ind = inpNum*timeSpan + i;
-        X(X_ind) = u(i,inpNum);
-    end
-end
+% for inpNum = 1:size(u,2)
+%     %  X2(i,:) = u(nb+i:-1:i)';  % NOTE: notes above apply here too
+%     for i = 1:timeSpan
+%         X_ind = inpNum*timeSpan + i;
+% %         disp(size(X(X_ind,:)));
+% %         disp(size(u(nb+i:-1:i, inpNum)'));
+%         X(nb*inpNum:nb*(inpNum+1), X_ind) = u(nb+i:-1:i,inpNum);
+%     end
+% end
+% fprintf('\n');
+% fprintf('Y[%d,%d]=X[%d,%d]T[?,?]\n',size(Y),size(X));
 
 %[X, Y] = interpolate(X, Y);
 [X, Y] = dropNaNs(X, Y);
 
 conditionNum = cond(X); 
+
+% disp(X);
 
 % TODO: choose to do something about poorly conditioned X...
 
@@ -89,19 +101,33 @@ conditionNum = cond(X);
 % Notice that (X^T*X)*{-1}*X^T is the pseudo inverse. The command pinv(X)
 % calculates the pseudo inverse of X but in MATLAB the most robust way to
 % calculate the product pinv(X)*Y is X\Y.
-theta=X\Y; 
+theta=X'\Y; 
 % leading coeff must be exactly 1 (set here removes floating point errors
+% fprintf('rounding leading coeff %d to 1\n', theta(1));
 % theta(1) = 1;  
 
 %size checks
-%fprintf('Y[%d,%d]=X[%d,%d]T[%d,%d]',size(Y),size(X),size(theta));
+% fprintf('Y[%d,%d]=X[%d,%d]T[%d,%d]',size(Y),size(X),size(theta));
 
-% A = first timeSpan rows of theta, B = last rows
-A = theta(1:timeSpan);
-B = zeros(size(u,2), size(y,1) );
-for inNum = 1:size(u,2);
-    B(inNum, :) = theta(inNum*timeSpan:(inNum+1)*timeSpan);
+if length(theta) > 1  % check that there wasn't 0 data
+    % A = first timeSpan rows of theta, B = last rows
+    A = [1; theta(1:nb)];
+
+    B = cell(size(u,2), 1);
+    % B = zeros(size(u,2), nb );
+    for inNum = 1:size(u,2);
+        B{inNum, 1} = theta(inNum*nb+1:(inNum+1)*nb);
+    end
+else
+    A = zeros(nb,1);
+    A(1) = 1;
+    B = [];
+    disp('WARN: not enough non-NaN data to form regressor matrix'); 
 end
+% fprintf('A[%d,%d]q y(t) = B[%d,%d]q u(t)',size(A),size(B));
+% theta
+% A
+% cell2mat(B)
 
 % The next command builds an idpoly model A(q^-1)y(t)=B(q^-1)u(t) with
 % A(q^-1)=1 and the coefficients of B(q^-1) in theta. The q^-1 is the delay
@@ -147,19 +173,20 @@ function [X, Y] = interpolate(x, y)
 end
 
 function [xx, yy] = dropNaNs(x, y)
-    % drops rows from the given matricies if nan is in any column
+    % drops columns from x and rows from y if nan is in them
+    % assumes size(y,1) == size(x,2)
     xx = [];
     yy = [];    
     % TODO: there is probably a cleaner way to do this...
-    for row=1:size(x,1) 
-        if ~any(isnan(x(row,:)))
-            xx (length(xx )+1,:)= x (row,:);
-            yy (length(yy )+1,:)= y (row,:);
-            %disp('keep row ');
+    for row=1:size(y,1) 
+%         fprintf('%d || %d', y(row), x(:,row));
+        if ~isnan(y(row)) && ~any(isnan(x(:,row)))
+            xx (:,size(xx,2)+1) = x (:,row);
+            yy (size(yy,1)+1,:) = y (row,:);
+%             disp('keep row ');
         else
-            %disp('drop row ');
+%             disp('drop row ');
         end
-%             disp(x(row,:));
     end
-    xx( ~any(xx,2), : ) = [];  % removed mysterious 0 rows
+%     xx( ~any(xx,2), : ) = [];  % removed mysterious 0 rows
 end

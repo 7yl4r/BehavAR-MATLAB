@@ -2,9 +2,9 @@ addpath violin
 
 % explores results of data analysis
 load('analysisData');
-% assumed data cols: trainTestRatio, randSeed, NRMSE, PID, cond_A, cond_B,
+% assumed data cols: trainTestRatio, randSeed, NRMSE, PID, conditionNum,
 % usedInputsColumnsBits
-n_cols = 6;
+n_cols = 5;
 trainTestLimits = [0 100];
 NRMSELimits = [-100 100];
 condLimits = [0 100];
@@ -15,10 +15,6 @@ analysisData( (analysisData(:,index) < NRMSELimits(1)), index ) = NRMSELimits(1)
 analysisData( (analysisData(:,index) > NRMSELimits(2)), index ) = NRMSELimits(2);
 
 index = 5;
-analysisData( (analysisData(:,index) < condLimits(1)), index ) = condLimits(1);
-analysisData( (analysisData(:,index) > condLimits(2)), index ) = condLimits(2);
-
-index = 6;
 analysisData( (analysisData(:,index) < condLimits(1)), index ) = condLimits(1);
 analysisData( (analysisData(:,index) > condLimits(2)), index ) = condLimits(2);
 
@@ -45,20 +41,8 @@ centers = condLimits(1):stepSize:condLimits(2);
 Xcts = hist(analysisData(:,5), centers);
 [xb, yb] = stairs(centers,Xcts);
 area(xb, yb)
-title('cond_A histogram');
+title('condition # histogram');
 xlim(condLimits);
-% xlabel();
-% ylabel();
-
-figure;
-nBins = 10;
-stepSize = (condLimits(2)-condLimits(1))/(nBins-1);
-centers = condLimits(1):stepSize:condLimits(2);
-Xcts = hist(analysisData(:,6), centers);
-[xb, yb] = stairs(centers,Xcts);
-area(xb, yb)
-title('cond_B histogram');
-ylim(condLimits);
 % xlabel();
 % ylabel();
 
@@ -75,15 +59,7 @@ scatter(analysisData(:,3), analysisData(:,5))
 % title();
 xlabel('NRMSE');
 xlim(NRMSELimits);
-ylabel('cond(A regressors) (auto-correlation vals)');
-ylim(condLimits);
-
-figure;
-scatter(analysisData(:,3), analysisData(:,6))
-% title();
-xlabel('NRMSE');
-xlim(NRMSELimits);
-ylabel('cond(B regressors) (in-out correlations)');
+ylabel('cond#');
 ylim(condLimits);
 
 % ### segmented by participant
@@ -138,6 +114,6 @@ for i=1:length(pids)
     [val, ind ] = max(p_data(:,3));
     best(i,:) = p_data(ind, :);
 end;
-printmat(best, 'Best Models', '100008 100057 100073 100115 100123 100149 100156 100164 100172 100180 100198 100206 100214 100222 100230 100248 100255 100263', 'trainTestRatio randSeed NRMSE PID cond_A cond_B');
+printmat(best, 'Best Models', '100008 100057 100073 100115 100123 100149 100156 100164 100172 100180 100198 100206 100214 100222 100230 100248 100255 100263', '%train randSeed NRMSE PID cond#');
 
 
