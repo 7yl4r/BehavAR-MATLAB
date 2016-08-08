@@ -1,4 +1,4 @@
-function [ sys, Y, X, cond_A, cond_B ] = behavARX( data, nb, verbose)
+function [ sys, Y, X, conditionNum ] = behavARX( data, nb, verbose)
 % This function estimates the model
 % y(t) = b_0*u(t) + b_1*u(t-1) ... + b_nb*u(t-nb) +
 %      - a_0*y(t) - a_1*y(t-1) ... - a_na*y(t-na)
@@ -48,40 +48,58 @@ function [ sys, Y, X, cond_A, cond_B ] = behavARX( data, nb, verbose)
 y=data.y; % extracts the output signal from the iddata object
 u=data.u; % extracts the input signal from the iddata object
 
-% disp(u)
+% Calculate the number input-output data pairs (size of matrix Y & theta) N
+n_inputs = size(u,2)+1;  % +1 b/c autocorrelation
+timeSpan = length(y)-nb;  % starting Y with y(nb+1), so nb+1 through len(y)
+N=timeSpan*(n_inputs); % one set of outputs for each input
 
-N=length(y); % Calculates the number input-output data pairs.
+% Builds the output vector Y the least squares estimator
+Y=zeros(N,1); 
+for inpNum = 1:n_inputs
+    % Y = y(nb+1:length(y));
+    for i = (inpNum-1)*timeSpan : inpNum*timeSpan
+        Y(i) = y( nb+1 + i );
+    end
+end
 
-Y=y(nb+1:N); % Builds the output vector of the least squares estimator
+% Build input matrix U for least squares estimator
+X=zeros(N,n_inputs);
+% first the autocorrelation
+for i=1:timeSpan
+    %  U(i,:) = y(nb+i:-1:i);  % NOTE: now only using 1 delay, not
+    %  range from t-1 : t-nb (like this old code snippet did)
+    X(i) = y(i);  % no nb b/c Y is shifted so i here is already nb lagged
+end
+% next the input-output correlation
+for inpNum = 1:length(u,2)
+    %  X2(i,:) = u(nb+i:-1:i)';  % NOTE: notes above apply here too
+    for i = 1:timeSpan
+        X_ind = inpNum*timeSpan + i;
+        X(X_ind) = u(i,inpNum);
+    end
+end
 
-% The next lines of code build the regressor matrix of the least squares
-% estimator
-X=zeros(length(Y),nb+1);
-for i=1:length(Y)
-     X(i,:) = y(nb+i:-1:i);  % self-correlation regressors
-end;
-X2=zeros(length(Y),nb+1);
-for i=1:length(Y)
-    X2(i,:) = u(nb+i:-1:i)';  % input regressors
-end;
-% X(i,nb+1:2*nb+1) = y(nb+i:-1:i);  % self-correlation regressors
-% end of the construction of the regressor Matrix
+%[X, Y] = interpolate(X, Y);
+[X, Y] = dropNaNs(X, Y);
 
-%[X, X2, Y] = interpolate(X, X2, Y);
-[X, X2, Y] = dropNaNs(X, X2, Y);
+conditionNum = cond(X); 
 
-cond_A = cond(X);
-cond_B = cond(X2);
+% TODO: choose to do something about poorly conditioned X...
 
 % The next command calculates the system parameters Theta=(X^T*X)^(-1)X^T*Y
 % Notice that (X^T*X)*{-1}*X^T is the pseudo inverse. The command pinv(X)
 % calculates the pseudo inverse of X but in MATLAB the most robust way to
 % calculate the product pinv(X)*Y is X\Y.
-A=X\Y; 
+theta=X\Y; 
 % leading coeff must be exactly 1 (set here removes floating point errors
-A(1) = 1;  
+theta(1) = 1;  
 
-B=X2\Y;
+% A = first timeSpan rows of theta, B = last rows
+A = theta(1:timeSpan);
+B = zeros(size(u,2), size(y,1) );
+for inNum = 1:length(u,2);
+    B(inNum, :) = theta(inNum*timeSpan:(inNum+1)*timeSpan);
+end
 
 % The next command builds an idpoly model A(q^-1)y(t)=B(q^-1)u(t) with
 % A(q^-1)=1 and the coefficients of B(q^-1) in theta. The q^-1 is the delay
@@ -114,32 +132,25 @@ sys=idpoly(A',B');
 
 end
 
-function [X, X2, Y] = interpolate(x, x2, y)
+function [X, Y] = interpolate(x, y)
     % interpolate for missing NaN values... (maybe problematic)
     for col=1:size(x,2)
         X(:,col) = naninterp(x(:,col));
     end;
     X(isnan(X)) = 0;  % temp fix for nan vals on edges
 
-    for col=1:size(x2,2)
-        X2(:,col) = naninterp(x2(:,col));
-    end;
-    X2(isnan(X2)) = 0;
-
     Y = naninterp(y);
     Y(isnan(Y)) = 0;
 end
 
-function [xx, xx2, yy] = dropNaNs(x, x2, y)
+function [xx, yy] = dropNaNs(x, y)
     % drops rows from the given matricies if nan is in any column
     xx = [];
-    xx2= [];
     yy = [];    
     % TODO: there is probably a cleaner way to do this...
     for row=1:size(x,1) 
         if ~any(isnan(x(row,:)))
             xx (length(xx )+1,:)= x (row,:);
-            xx2(length(xx2)+1,:)= x2(row,:);
             yy (length(yy )+1,:)= y (row,:);
             %disp('keep row ');
         else
@@ -148,5 +159,4 @@ function [xx, xx2, yy] = dropNaNs(x, x2, y)
 %             disp(x(row,:));
     end
     xx( ~any(xx,2), : ) = [];  % removed mysterious 0 rows
-    xx2(~any(xx2,2),: ) = [];
 end

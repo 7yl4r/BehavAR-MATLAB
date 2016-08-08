@@ -1,5 +1,5 @@
 function [ ] = PerformAnalysis( N )
-% PerformAnalysis runs behavARX on all participants N times.
+% PerformAnalysis( N ) runs behavARX on all participants N times.
 
 defaultRandSeed = 1;
 
