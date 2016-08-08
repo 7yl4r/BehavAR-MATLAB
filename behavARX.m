@@ -53,13 +53,12 @@ n_inputs = size(u,2)+1;  % +1 b/c autocorrelation
 timeSpan = length(y)-nb;  % starting Y with y(nb+1), so nb+1 through len(y)
 N=timeSpan*(n_inputs); % one set of outputs for each input
 
+fprintf('y(%dx1), nb=%d, # regressors per input=%d\n',length(y), nb, timeSpan);
 % Builds the output vector Y the least squares estimator
 Y=zeros(N,1); 
 for inpNum = 1:n_inputs
     % Y = y(nb+1:length(y));
-    for i = (inpNum-1)*timeSpan : inpNum*timeSpan
-        Y(i) = y( nb+1 + i );
-    end
+    Y((inpNum-1)*timeSpan+1 : inpNum*timeSpan) = y(nb+1:length(y));
 end
 
 % Build input matrix U for least squares estimator
@@ -71,7 +70,7 @@ for i=1:timeSpan
     X(i) = y(i);  % no nb b/c Y is shifted so i here is already nb lagged
 end
 % next the input-output correlation
-for inpNum = 1:length(u,2)
+for inpNum = 1:size(u,2)
     %  X2(i,:) = u(nb+i:-1:i)';  % NOTE: notes above apply here too
     for i = 1:timeSpan
         X_ind = inpNum*timeSpan + i;
@@ -92,12 +91,15 @@ conditionNum = cond(X);
 % calculate the product pinv(X)*Y is X\Y.
 theta=X\Y; 
 % leading coeff must be exactly 1 (set here removes floating point errors
-theta(1) = 1;  
+% theta(1) = 1;  
+
+%size checks
+%fprintf('Y[%d,%d]=X[%d,%d]T[%d,%d]',size(Y),size(X),size(theta));
 
 % A = first timeSpan rows of theta, B = last rows
 A = theta(1:timeSpan);
 B = zeros(size(u,2), size(y,1) );
-for inNum = 1:length(u,2);
+for inNum = 1:size(u,2);
     B(inNum, :) = theta(inNum*timeSpan:(inNum+1)*timeSpan);
 end
 
@@ -129,6 +131,7 @@ end
 % disp(B)
 
 sys=idpoly(A',B');
+
 
 end
 
