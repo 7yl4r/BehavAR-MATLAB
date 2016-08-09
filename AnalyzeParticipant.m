@@ -5,10 +5,10 @@ function [ analysisData ] = AnalyzeParticipant( PID, data, analysisData, N, rand
 %   1   'participant_id',
 %       'study_day',
 %       'study_date',
-%       'goal_steps',
-%   5   'reward_points',
+%       'goal_steps',               *
+%   5   'reward_points',            *
 %       'actual_steps',
-%       'granted_points',
+%       'granted_points',           *
 %       'sleep',
 %       'busypred',
 %   10  'stresspred',
@@ -40,8 +40,13 @@ participant_subset = data(indices,:);
 
 inputModelOrders='0001000000011111111111111100';  % NOTE: right now just shows usage of a var, not the model order...
       
-exogeneous_U = [participant_subset(:,4)]
+% exogeneous_U = [participant_subset(:,4)];  % step goal
 
+exogeneous_U = [participant_subset(:,4)...
+    participant_subset(:,5)...
+    participant_subset(:,7)];  % step goal
+
+% multiple inputs (U) 
 % exogeneous_U = [participant_subset(:,4),participant_subset(:,12)...
 %     participant_subset(:,13), participant_subset(:,14)...
 %     participant_subset(:,15), participant_subset(:,16)...
@@ -49,9 +54,9 @@ exogeneous_U = [participant_subset(:,4)]
 %     participant_subset(:,19), participant_subset(:,20)...
 %     participant_subset(:,21), participant_subset(:,22)...
 %     participant_subset(:,23), participant_subset(:,24)...
-%     participant_subset(:,25), participant_subset(:,26)]; % step goal
+%     participant_subset(:,25), participant_subset(:,26)]; 
+
 outputData_Y = participant_subset(:,6); % actual steps
-% TODO: multiple inputs (U) 
 
 
 % run behavARX many times, record results
@@ -64,7 +69,7 @@ for i=1:N
 
     % 3/5 training chunks = 60% train/test split
     [ trainTestRatio, NRMSE, conditionNum ]...
-        = AnalyzeData(outputData_Y, exogeneous_U, .6, 7, false);
+        = AnalyzeData(outputData_Y, exogeneous_U, .6, 3, false);
 
     row = [ trainTestRatio, randSeed, NRMSE, PID, conditionNum ];
     

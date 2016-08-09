@@ -90,15 +90,21 @@ end
 % end
 
 %[X, Y] = interpolate(X, Y);
+if verbose
+    fprintf('Y[%d,%d]=X[%d,%d]T[?,?]\n',size(Y),size(X));
+end
+
 [X, Y] = dropNaNs(X, Y);
 
-X = X';  % oops, X is sideways
 if verbose
     fprintf('\n');
+    disp('after trimmming NaNs');
     fprintf('Y[%d,%d]=X[%d,%d]T[?,?]\n',size(Y),size(X));
     X
     Y
 end
+
+X = X';  % oops, X is sideways
 
 conditionNum = cond(X); 
 
@@ -117,21 +123,28 @@ theta=X\Y;
 %size checks
 % fprintf('Y[%d,%d]=X[%d,%d]T[%d,%d]',size(Y),size(X),size(theta));
 
-theta
-% theta should look like:
-% out1(t-1)->out1(t)
-% out1(t-2)->out1(t)
-% in1(t-1)->out1(t)
-% in2(t-2)->out1(t)
+if verbose
+    theta
+    % theta should look like:
+    % out1(t-1)->out1(t)
+    % out1(t-2)->out1(t)
+    % in1(t-1)->out1(t)
+    % in2(t-2)->out1(t)
+end
 
-if length(theta) > 1  % check that there wasn't 0 data
-    N_y = size(y,2);
-    N_u = size(u,2);
+% check that there wasn't 0 data
+if length(theta) < 1 || any(isnan(theta))
+    theta = zeros(nb*n_inputs, 1);
+    disp('WARN: not enough non-NaN data to form regressor matrix'); 
+end
 
-    % A = first timeSpan rows of theta, B = last rows
-    A = cell(N_y, N_y);
-    A{1,1} = [1; theta(1:nb)];
-    
+N_y = size(y,2);
+N_u = size(u,2);
+
+% A = first timeSpan rows of theta, B = last rows
+A = cell(N_y, N_y);
+A{1,1} = [1; theta(1:nb)];
+
 %     % multi-input should be something like this...
 %     for y_i = 1:size(y,2)
 %         for y_j = 1:size(y,2)
@@ -147,18 +160,13 @@ if length(theta) > 1  % check that there wasn't 0 data
 %     end
 %     A = [1; theta(1:nb)];
 
-    B = cell(N_y, N_u);
-    for inNum = 1:N_u  % todo: multi-out i.e. B{outNum,inNum} =
-        B{1,inNum} = [0; theta( (inNum*nb+1) : (inNum+1)*nb)];  % in1->out1
-    end
-else
-    A = zeros(nb+1,1);
-    A(1) = 1;
-    B = zeros(nb,1);
-    disp('WARN: not enough non-NaN data to form regressor matrix'); 
+B = cell(N_y, N_u);
+for inNum = 1:N_u  % todo: multi-out i.e. B{outNum,inNum} =
+    B{1,inNum} = [0; theta( (inNum*nb+1) : (inNum+1)*nb)];  % in1->out1
 end
-% fprintf('A[%d,%d]q y(t) = B[%d,%d]q u(t)',size(A),size(B));
 
+% fprintf('A[%d,%d]q y(t) = B[%d,%d]q u(t)',size(A),size(B));
+% theta
 % cell2mat(A)
 % cell2mat(B)
 
@@ -184,10 +192,6 @@ end
 % (1+a_1*q^-1+...+a_na*q^-na)*y(t)=(b_0+b_1*q^-1+...+b_nb*q^-nb)*u(t)
 %
 % you get the referred compact form .
-% disp('A')
-% disp(A)
-% disp('B')
-% disp(B)
 
 sys=idpoly(A,B);
 
