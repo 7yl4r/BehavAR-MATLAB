@@ -18,7 +18,7 @@ if showFigures == true
 end
     
 % train the arx model
-[ sys, Y, X, conditionNum ] = behavARX( trainData, modelOrder );
+[ sys, theta, conditionNum ] = behavARX( trainData, modelOrder );
 
 [~,NRMSE,~] = compare(iddata(outputData_Y, exogeneous_U), sys);
 % disp(NRMSE);
