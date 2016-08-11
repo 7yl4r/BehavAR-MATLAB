@@ -10,7 +10,12 @@ classdef behavARX_test
         function [] = testBuiltInAndCustomYieldSimilar()
             [modelOrder, trainData, outputData_Y, exogeneous_U, mockSys] = behavARX_test.getKnownMultiInputData();
             [ sys, theta, conditionNum ] = behavARX( trainData, modelOrder );
-            compare(sys, mockSys);
+            sys2 = arx(trainData, [modelOrder, [modelOrder modelOrder modelOrder], 1]);
+            compare(trainData, sys);
+            title('behavARX');
+            figure;
+            compare(trainData, sys2);
+            title('arx');
         end
         
         function [] = testXandYasExpected()
@@ -168,7 +173,7 @@ classdef behavARX_test
         
         function [modelOrder, trainData, outputData_Y, exogeneous_U, mockSys] = getKnownMultiInputData()
             modelOrder = 3;
-            exogeneous_U = [mockInputData(1000, 'random'), mockInputData(1000, 'random')];
+            exogeneous_U = [mockInputData(100, 'random'), mockInputData(100, 'random')];
 
             A = cell(1,1);
             A{1,1} = [1 0 0 0];  % out1 to out1 t-0 t-1 t-2 t-3
