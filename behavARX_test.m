@@ -7,6 +7,12 @@ classdef behavARX_test
     
     methods(Static)
         
+        function [] = testBuiltInAndCustomYieldSimilar()
+            [modelOrder, trainData, outputData_Y, exogeneous_U, mockSys] = behavARX_test.getKnownMultiInputData();
+            [ sys, theta, conditionNum ] = behavARX( trainData, modelOrder );
+            compare(sys, mockSys);
+        end
+        
         function [] = testXandYasExpected()
             % evaluate the behavARX X & Y matrix building by using known
             %   u & y and checking X & Y.
@@ -84,21 +90,7 @@ classdef behavARX_test
             % test 2 evaluation of the behavARX by training on a known model.
             showFigures = false;  % set to true if you want to see plots
 
-            modelOrder = 3;
-            exogeneous_U = [mockInputData(1000, 'random'), mockInputData(1000, 'random')];
-            
-            A = cell(1,1);
-            A{1,1} = [1 0 0 0];  % out1 to out1 t-0 t-1 t-2 t-3
-            
-            B = cell(1, 1);
-            B{1,1} = [0 0 -.5 .5]; %in1 to out1 t-1 t-2 t-3
-            B{1,2} = [0 .7 0 0];  %in2 to out1 
-            
-            mockSys = idpoly(A, B);  % mock arx model
-            outputData_Y = sim(mockSys, exogeneous_U);
-
-            trainData = iddata(outputData_Y, exogeneous_U);
-
+            [modelOrder, trainData, outputData_Y, exogeneous_U, mockSys] = getKnownMultiInputData();
 
             % train the arx model
             [ sys, theta, conditionNum ] = behavARX( trainData, modelOrder );
@@ -120,9 +112,8 @@ classdef behavARX_test
                 disp('B-B`=')
                 disp(Bdiff)
             end
-
         end
-
+        
         function [] = testTrainOnKnownModel()
             % test 2 evaluation of the behavARX by training on a known model.
             showFigures = false;  % set to true if you want to see plots
@@ -174,6 +165,22 @@ classdef behavARX_test
                 disp(Bdiff)
             end
         end
-    end
-end
+        
+        function [modelOrder, trainData, outputData_Y, exogeneous_U, mockSys] = getKnownMultiInputData()
+            modelOrder = 3;
+            exogeneous_U = [mockInputData(1000, 'random'), mockInputData(1000, 'random')];
 
+            A = cell(1,1);
+            A{1,1} = [1 0 0 0];  % out1 to out1 t-0 t-1 t-2 t-3
+
+            B = cell(1, 1);
+            B{1,1} = [0 0 -.5 .5]; %in1 to out1 t-1 t-2 t-3
+            B{1,2} = [0 .7 0 0];  %in2 to out1 
+
+            mockSys = idpoly(A, B);  % mock arx model
+            outputData_Y = sim(mockSys, exogeneous_U);
+
+            trainData = iddata(outputData_Y, exogeneous_U);
+        end  % /function getKnownMultiInputData
+    end  %/static methods
+end
