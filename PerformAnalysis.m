@@ -1,12 +1,15 @@
-function [ ] = PerformAnalysis( N, split_type )
+function [ ] = PerformAnalysis( N, split_type, amountTrain, amountTest )
 % PerformAnalysis( N ) runs behavARX on all participants N times.
 
 if ~exist('split_type', 'var')
     split_type = splitType.randomChunks;
 end
-
-amountTrain = 5;
-amountTest = 1;
+if ~exist('amountTrain', 'var')
+    amountTrain = 2;
+end
+if ~exist('amountTest', 'var')
+    amountTest = 1;
+end
 
 defaultRandSeed = 1;
 
@@ -29,7 +32,8 @@ pids = unique(data(:,1));
 % run behavARX many times on each participant, record results
 for i=1:length(pids)
     fprintf('=== p#%d (%d/%d) ===\n',pids(i), i, length(pids));
-    analysisData = AnalyzeParticipant(pids(i), data, analysisData, N, randSeed, amountTrain, amountTest, split_type);
+    analysisData = AnalyzeParticipant(pids(i), data, ...
+        amountTrain, amountTest, split_type, analysisData, N, randSeed, false);
 end;
 fprintf('\n');
 

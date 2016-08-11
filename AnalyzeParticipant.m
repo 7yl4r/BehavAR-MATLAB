@@ -1,5 +1,19 @@
-function [ analysisData ] = AnalyzeParticipant( PID, data, analysisData, N, randSeed, amountTrain, amountTest, split_type)
-%AnalyzeParticpant Performs behavARX analysis on given participant id
+function [ analysisData ] = AnalyzeParticipant( PID, data, ...
+    amountTrain, amountTest, split_type, analysisData, N, randSeed, ...
+    showfigs)
+%AnalyzeParticpant Performs behavARX analysis on given participant id.
+%   # REQUIRED #
+%   PID     -    participant id number 
+%   data    -    data matrix as described below
+%   # OPTIONAL #
+%   analysisData - existing saved analysisData or empty obj to save in
+%   N   -    number of times to run analysis
+%   randSeed - number to seed random function
+%   amountTrain - amount of data to use to train (default 80%)
+%   amountTest  - amount of data to use to evaluate (default 20%)
+%   split_type  - method used to separate train/test sets
+%   showfigs    - true to show figures. defaults true
+%
 %   Assumes given data variable has the following structure:
 %       {
 %   1   'participant_id',
@@ -32,6 +46,23 @@ function [ analysisData ] = AnalyzeParticipant( PID, data, analysisData, N, rand
 %       'IsWeekend'
 %       }
 
+if ~exist('N', 'var')
+    N = 1;
+end
+if ~exist('randSeed', 'var')
+    randSeed = randi([1000 9999]);
+end
+if ~exist('amountTrain', 'var') || ~exist('amountTest', 'var')
+    amountTrain = 4;
+    amountTest = 1;
+end
+if ~exist('split_type', 'var')
+    split_type = splitType.randomChunks;
+end
+if ~exist('showfigs', 'var')
+    showfigs = true;
+end
+
 %Find indices to elements in first column of A that satisfy the equality
 indices = data(:,1) == PID;
 
@@ -42,9 +73,9 @@ inputModelOrders='0001000000011111111111111100';  % NOTE: right now just shows u
       
 % exogeneous_U = [participant_subset(:,4)];  % step goal
 
-exogeneous_U = [participant_subset(:,4)...
+exogeneous_U = [participant_subset(:,4)...% step goal
     participant_subset(:,5)...
-    participant_subset(:,7)];  % step goal
+    participant_subset(:,7)];  
 
 % multiple inputs (U) 
 % exogeneous_U = [participant_subset(:,4),participant_subset(:,12)...
@@ -69,11 +100,13 @@ for i=1:N
 
     % 3/5 training chunks = 60% train/test split
     [ trainTestRatio, NRMSE, conditionNum ]...
-        = AnalyzeData(outputData_Y, exogeneous_U, amountTrain, amountTest, split_type, 3, false);
+        = AnalyzeData(outputData_Y, exogeneous_U, amountTrain, amountTest, split_type, 3, showfigs);
 
     row = [ trainTestRatio, randSeed, NRMSE, PID, conditionNum ];
     
-    analysisData = [analysisData; row];
+    if exist('analysisData', 'var')
+        analysisData = [analysisData; row];
+    end
     
     randSeed = randSeed + 1;
 end;
