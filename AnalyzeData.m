@@ -1,13 +1,22 @@
-function [ trainTestRatio, NRMSE, conditionNum ] = ...
-    AnalyzeData( outputData_Y, exogeneous_U, percentTrain, modelOrder, showFigures)
+function [ trainTestRatio, NRMSE, conditionNum] = ...
+    AnalyzeData( outputData_Y, exogeneous_U, amountTrain, amountTest, split_type, modelOrder, showFigures)
 %AnalyzeData returns analysis results on given Y & U data
 %   ...
+
+% TODO: how to get n_train_chunks, n_test_chunks OR percentTrain ???
+% function overloading???
 
 % disp('uuuu');
 % disp(exogeneous_U);
 
 % split the data
-[trainData, testData, trainTestRatio] = randomSelectionSplit(outputData_Y, exogeneous_U, percentTrain);
+if split_type == splitType.randomPoints
+    [trainData, testData, trainTestRatio] = randomSelectionSplit(outputData_Y, exogeneous_U, amountTrain/amountTest);
+elseif split_type == splitType.randomChunks
+    [trainData, testData, trainTestRatio] = chunkSplit(outputData_Y, exogeneous_U, amountTrain, amountTest);
+else
+    disp('given splitType ' + split_type + ' not recognized.');
+end        
 
 if showFigures == true
     plot(trainData);

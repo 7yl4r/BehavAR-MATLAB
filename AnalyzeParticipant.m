@@ -1,4 +1,4 @@
-function [ analysisData ] = AnalyzeParticipant( PID, data, analysisData, N, randSeed)
+function [ analysisData ] = AnalyzeParticipant( PID, data, analysisData, N, randSeed, amountTrain, amountTest, split_type)
 %AnalyzeParticpant Performs behavARX analysis on given participant id
 %   Assumes given data variable has the following structure:
 %       {
@@ -69,7 +69,7 @@ for i=1:N
 
     % 3/5 training chunks = 60% train/test split
     [ trainTestRatio, NRMSE, conditionNum ]...
-        = AnalyzeData(outputData_Y, exogeneous_U, .6, 3, false);
+        = AnalyzeData(outputData_Y, exogeneous_U, amountTrain, amountTest, split_type, 3, false);
 
     row = [ trainTestRatio, randSeed, NRMSE, PID, conditionNum ];
     
