@@ -1,5 +1,6 @@
 function [ trainTestRatio, NRMSE, conditionNum] = ...
-    AnalyzeData( outputData_Y, exogeneous_U, amountTrain, amountTest, split_type, modelOrder, showFigures)
+    AnalyzeData( outputData_Y, exogeneous_U, amountTrain, amountTest, ...
+        split_type, modelOrder, showFigures)
 %AnalyzeData returns analysis results on given Y & U data
 %   ...
 
@@ -11,11 +12,15 @@ function [ trainTestRatio, NRMSE, conditionNum] = ...
 
 % split the data
 if split_type == splitType.randomPoints
-    [trainData, testData, trainTestRatio] = randomSelectionSplit(outputData_Y, exogeneous_U, amountTrain/amountTest);
+%     disp('split pts');
+    [trainData, testData, trainTestRatio] = randomSelectionSplit(...
+        outputData_Y, exogeneous_U, amountTrain/(amountTest+amountTrain));
 elseif split_type == splitType.randomChunks
-    [trainData, testData, trainTestRatio] = chunkSplit(outputData_Y, exogeneous_U, amountTrain, amountTest);
+%     disp('split chunks');
+    [trainData, testData, trainTestRatio] = chunkSplit(outputData_Y, ...
+        exogeneous_U, amountTrain, amountTest);
 else
-    disp('given splitType ' + split_type + ' not recognized.');
+    disp('ERR: given splitType ' + split_type + ' not recognized.');
 end        
 
 if showFigures == true

@@ -1,6 +1,15 @@
-function [ trainData, testData, ratio ] = randomSelectionSplit( outputData_Y, exogeneous_U, percentTrain )
+function [ trainData, testData, ratio ] = randomSelectionSplit( ...
+    outputData_Y, exogeneous_U, percentTrain, verbose)
 % given two data arrays, returns test and training set data objects.
 % points are randomly assigned to either test/training.
+
+if ~exist('verbose', 'var')
+    verbose = false;
+end
+
+if verbose
+    fprintf('splitting out apprx %d p train\n', percentTrain);
+end
 
 t = 1;
 % disp('u');
@@ -38,11 +47,12 @@ end
 
 ratio = round(100*n_train/(n_train+n_test));
 
-%  fprintf('train:test = %d/%d (%d%% train)\n', ...
-%      n_train, n_test, ratio);
-
-% disp(size(trainY'))
-% disp(size(trainU));
+if verbose
+    fprintf('train:test = %d/%d (%d%% train)\n', ...
+        n_train, n_test, ratio);
+%     disp(size(trainY'))
+%     disp(size(trainU));
+end
 
 trainData = iddata(trainY', trainU);
 testData  = iddata(testY',  testU);
