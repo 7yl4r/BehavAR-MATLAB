@@ -49,6 +49,9 @@ if nargin < 3
     verbose = false;
 end
 
+% TODO: could use struc()? to generate model-order combinations?
+% http://www.mathworks.com/help/ident/ref/struc.html
+
 y=data.y; % extracts the output signal from the iddata object
 u=data.u; % extracts the input signal from the iddata object
 
@@ -69,13 +72,15 @@ for i=1:timeSpan
     % first the autocorrelation
     % no nb b/c Y is shifted so i here is already nb lagged
     % reversed to match up w/ q operator for A & B matrices (see idpoly)
-    X(1:nb,i) = y(nb+i-1:-1:i);
+    t0 = i;
+    tf = nb+i-1;
+    X(1:nb,i) = -y(tf:-1:t0);
     
     % next the input-output correlation
     for inpNum = 1:size(u,2)
         lag0_i = nb*inpNum+1;
         lagf_i= nb*(inpNum+1);
-        X(lag0_i:lagf_i, i) = u(nb+i-1:-1:i,inpNum);
+        X(lag0_i:lagf_i, i) = u(tf:-1:t0,inpNum);
     end
 end
 % next the input-output correlation
@@ -107,6 +112,10 @@ end
 X = X';  % oops, X is sideways
 
 conditionNum = cond(X); 
+
+if verbose
+    conditionNum
+end
 
 % disp(X);
 

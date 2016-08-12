@@ -111,7 +111,8 @@ for i=1:N
     randSeed = randSeed + 1;
 end;
 fprintf('\n');
-
-save('analysisData', 'analysisData');
+if exist('analysisData', 'var')
+    save('analysisData', 'analysisData');
+end
 end
 

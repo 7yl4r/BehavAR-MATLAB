@@ -1,6 +1,5 @@
 classdef behavARX_test
-    %UNTITLED Summary of this class goes here
-    %   Detailed explanation goes here
+    %behavARX_test
     
     properties
     end
@@ -9,13 +8,19 @@ classdef behavARX_test
         
         function [] = testBuiltInAndCustomYieldSimilar()
             [modelOrder, trainData, outputData_Y, exogeneous_U, mockSys] = behavARX_test.getKnownMultiInputData();
-            [ sys, theta, conditionNum ] = behavARX( trainData, modelOrder );
-            sys2 = arx(trainData, [modelOrder, [modelOrder modelOrder modelOrder], 1]);
+            [ sys, theta, conditionNum ] = behavARX( trainData, modelOrder, true);
+            sys2 = arx(trainData, [modelOrder, [modelOrder modelOrder], [1 1]]);
             compare(trainData, sys);
             title('behavARX');
             figure;
             compare(trainData, sys2);
             title('arx');
+            % Use "polydata", "getpvec", "getcov" for parameters and their uncertainties.
+            disp('behavARX vs ARX polys:');
+            sys
+            sys2
+            cell2mat(polydata(sys))
+            cell2mat(polydata(sys2))
         end
         
         function [] = testXandYasExpected()
@@ -95,7 +100,7 @@ classdef behavARX_test
             % test 2 evaluation of the behavARX by training on a known model.
             showFigures = false;  % set to true if you want to see plots
 
-            [modelOrder, trainData, outputData_Y, exogeneous_U, mockSys] = getKnownMultiInputData();
+            [modelOrder, trainData, outputData_Y, exogeneous_U, mockSys] = behavARX_test.getKnownMultiInputData();
 
             % train the arx model
             [ sys, theta, conditionNum ] = behavARX( trainData, modelOrder );
@@ -108,15 +113,15 @@ classdef behavARX_test
             end
             NRMSE
             sys
-            if exist('mockSys', 'var')
-                Adiff = mockSys.a - sys.a;
-                Bdiff = mockSys.b - sys.b;
-                disp('actual vs learned coeffs (should be near 0):');
-                disp('A-A`=')
-                disp(Adiff)
-                disp('B-B`=')
-                disp(Bdiff)
-            end
+%             if exist('mockSys', 'var')
+%                 Adiff = mockSys.a - sys.a;
+%                 Bdiff = mockSys.b - sys.b;
+%                 disp('actual vs learned coeffs (should be near 0):');
+%                 disp('A-A`=')
+%                 disp(Adiff)
+%                 disp('B-B`=')
+%                 disp(Bdiff)
+%             end
         end
         
         function [] = testTrainOnKnownModel()
@@ -176,11 +181,11 @@ classdef behavARX_test
             exogeneous_U = [mockInputData(100, 'random'), mockInputData(100, 'random')];
 
             A = cell(1,1);
-            A{1,1} = [1 0 0 0];  % out1 to out1 t-0 t-1 t-2 t-3
+            A{1,1} = [1 .2 -.3 .4];  % out1 to out1 t-0 t-1 t-2 t-3
 
             B = cell(1, 1);
-            B{1,1} = [0 0 -.5 .5]; %in1 to out1 t-1 t-2 t-3
-            B{1,2} = [0 .7 0 0];  %in2 to out1 
+            B{1,1} = [-.5 .6 -.7 .8]; %in1 to out1 t-1 t-2 t-3
+            B{1,2} = [.9 -.11 .12 .13];  %in2 to out1 
 
             mockSys = idpoly(A, B);  % mock arx model
             outputData_Y = sim(mockSys, exogeneous_U);
