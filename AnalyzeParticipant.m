@@ -57,7 +57,7 @@ if ~exist('amountTrain', 'var') || ~exist('amountTest', 'var')
     amountTest = 1;
 end
 if ~exist('split_type', 'var')
-    split_type = splitType.randomChunks;
+    split_type = SplitType.randomChunks;
 end
 if ~exist('showfigs', 'var')
     showfigs = true;

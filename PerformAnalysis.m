@@ -2,7 +2,7 @@ function [ ] = PerformAnalysis( N, split_type, amountTrain, amountTest )
 % PerformAnalysis( N ) runs behavARX on all participants N times.
 
 if ~exist('split_type', 'var')
-    split_type = splitType.randomChunks;
+    split_type = SplitType.randomChunks;
 end
 if ~exist('amountTrain', 'var')
     amountTrain = 2;

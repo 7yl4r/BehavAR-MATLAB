@@ -1,4 +1,4 @@
-classdef splitType
+classdef SplitType
     %splitType enum for types of data splits available
 
     enumeration

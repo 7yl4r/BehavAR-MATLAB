@@ -11,17 +11,17 @@ function [ trainTestRatio, NRMSE, conditionNum] = ...
 % disp(exogeneous_U);
 
 % split the data
-if split_type == splitType.randomPoints
+if split_type == SplitType.randomPoints
 %     disp('split pts');
     [trainData, testData, trainTestRatio] = randomSelectionSplit(...
         outputData_Y, exogeneous_U, amountTrain/(amountTest+amountTrain));
-elseif split_type == splitType.randomChunks
+elseif split_type == SplitType.randomChunks
 %     disp('split chunks');
     [trainData, testData, trainTestRatio] = chunkSplit(outputData_Y, ...
         exogeneous_U, amountTrain, amountTest);
 else
-    disp('ERR: given splitType ' + split_type + ' not recognized.');
-end        
+    disp('ERR: given SplitType ' + split_type + ' not recognized.');
+end
 
 if showFigures == true
     plot(trainData);
