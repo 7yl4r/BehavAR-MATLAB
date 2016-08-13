@@ -94,25 +94,20 @@ outputData_Y = participant_subset(:,6); % actual steps
 for i=1:N
     fprintf('%d|',randSeed);
     rng(randSeed);
-
-%     disp('U=')
-%     disp(exogeneous_U)
-
-    % 3/5 training chunks = 60% train/test split
+    
     [ trainTestRatio, NRMSE, conditionNum ]...
         = AnalyzeData(outputData_Y, exogeneous_U, amountTrain, amountTest, split_type, 3, showfigs);
 
-    row = [ trainTestRatio, randSeed, NRMSE, PID, conditionNum ];
-    
-    if exist('analysisData', 'var')
-        analysisData = [analysisData; row];
-    end
+    ARXResults.rowProp('trainTestRatio', trainTestRatio);
+    ARXResults.rowProp('randSeed', randSeed);
+    ARXResults.rowProp('NRMSE', NRMSE);
+    ARXResults.rowProp('PID', PID);
+    ARXResults.rowProp('conditionNum', conditionNum);
+    ARXResults.finishRow();
     
     randSeed = randSeed + 1;
 end;
 fprintf('\n');
-if exist('analysisData', 'var')
-    save('analysisData', 'analysisData');
-end
+
 end
 
