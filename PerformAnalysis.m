@@ -1,5 +1,10 @@
 function [ ] = PerformAnalysis( N, split_type, amountTrain, amountTest )
 % PerformAnalysis( N ) runs behavARX on all participants N times.
+% optional positional args for
+% PerformAnalysis(N, splitType, amountTrain, amountTest)
+% * splitType : SplitType enum describes data split method
+% * amountTrain : amount to use for training (format depends on splitType)
+% * amountTest  : amount to use for test (format dep. on splitType)
 
 if ~exist('split_type', 'var')
     split_type = SplitType.randomChunks;

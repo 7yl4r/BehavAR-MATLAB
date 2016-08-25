@@ -102,7 +102,8 @@ for i=1:N
     [ trainTestRatio, NRMSE, conditionNum ]...
         = AnalyzeData(outputData_Y, exogeneous_U, amountTrain, amountTest, split_type, 3, showfigs);
 
-    row = [ trainTestRatio, randSeed, NRMSE, PID, conditionNum ];
+    n_chunks = amountTrain + amountTest;
+    row = [ trainTestRatio, randSeed, NRMSE, PID, conditionNum, n_chunks];
     
     if exist('analysisData', 'var')
         analysisData = [analysisData; row];
