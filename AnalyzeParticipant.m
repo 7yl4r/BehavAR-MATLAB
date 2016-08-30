@@ -99,11 +99,11 @@ for i=1:N
 %     disp(exogeneous_U)
 
     % 3/5 training chunks = 60% train/test split
-    [ trainTestRatio, NRMSE, conditionNum ]...
+    [ trainTestRatio, NRMSE, conditionNum, rankNum ]...
         = AnalyzeData(outputData_Y, exogeneous_U, amountTrain, amountTest, split_type, 3, showfigs);
 
     n_chunks = amountTrain + amountTest;
-    row = [ trainTestRatio, randSeed, NRMSE, PID, conditionNum, n_chunks];
+    row = [ trainTestRatio, randSeed, NRMSE, PID, conditionNum, n_chunks, rankNum];
     
     if exist('analysisData', 'var')
         analysisData = [analysisData; row];

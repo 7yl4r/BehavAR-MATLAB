@@ -1,4 +1,4 @@
-function [ sys, theta, conditionNum ] = behavARX( data, nb, verbose)
+function [ sys, theta, conditionNum, rankVal ] = behavARX( data, nb, verbose)
 % This function estimates the model
 % y(t) = b_0*u(t) + b_1*u(t-1) ... + b_nb*u(t-nb) +
 %      - a_0*y(t) - a_1*y(t-1) ... - a_na*y(t-na)
@@ -112,6 +112,7 @@ end
 X = X';  % oops, X is sideways
 
 conditionNum = cond(X); 
+rankVal = rank(X);
 
 if verbose
     conditionNum
